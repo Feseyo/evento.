@@ -1,0 +1,6 @@
+{
+  "name": "Evento Kerala - Discover & Book Events Nearby",
+  "description": "Discover nearby music concerts, Kerala Blasters football matches, tech meetups, college fests, and cultural events across Kochi, Trivandrum, Kozhikode, and Thrissur. Book tickets with UPI and calendar sync.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
