@@ -79,9 +79,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   const savedEventsList = user ? events.filter(e => user.savedEventIds.includes(e.id)) : [];
   
-  // Find events created/hosted by this authenticated user
+  // Find events created/hosted by this authenticated user (admin sees all events to manage)
   const hostedEventsList = user 
-    ? events.filter(e => e.createdByUserId === user.id || e.organizer.name.includes('You') || e.organizer.name.includes(user.name.split(' ')[0]))
+    ? events.filter(e => {
+        if (user.role === 'admin') return true;
+        return Boolean(e.createdByUserId) && e.createdByUserId === user.id;
+      })
     : [];
 
   const handleSaveSettings = (e: React.FormEvent) => {
@@ -123,20 +126,29 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   {isAuthenticated ? (user?.name || 'User') : 'Guest Profile'}
                 </h3>
                 {isAuthenticated ? (
-                  <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-200/50 dark:border-indigo-800/50">
-                    Authenticated
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    user?.role === 'admin'
+                      ? 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-300'
+                      : 'text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200'
+                  }`}>
+                    {user?.role === 'admin' ? 'Admin Access' : 'Member'}
                   </span>
                 ) : (
                   <button
-                    onClick={onOpenAuthModal}
+                    onClick={() => {
+                      onClose();
+                      onOpenAuthModal();
+                    }}
                     className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                   >
-                    Sign in
+                    Sign in to Account
                   </button>
                 )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {isAuthenticated ? `${user?.email || ''} · ${user?.city || 'Kochi'}` : 'Sign in to access synced tickets and host events'}
+                {isAuthenticated 
+                  ? `${user?.email || ''} · ${user?.city || 'Kochi'} · ${user?.role === 'admin' ? 'Can manage & delete all events' : 'Can delete self-hosted events'}` 
+                  : 'Browsing as Guest. Sign in to host, delete, and book events.'}
               </p>
             </div>
           </div>
@@ -183,6 +195,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <button
               onClick={() => {
                 if (!isAuthenticated) {
+                  onClose();
                   onOpenAuthModal();
                 } else if (onOpenHostModal) {
                   onClose();

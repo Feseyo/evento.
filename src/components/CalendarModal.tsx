@@ -9,6 +9,7 @@ import {
   Ticket 
 } from 'lucide-react';
 import { EventItem } from '../types';
+import { sounds } from '../utils/soundEffects';
 
 interface CalendarModalProps {
   isOpen: boolean;
@@ -54,6 +55,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
   );
 
   const handlePrevMonth = () => {
+    sounds.playClick();
     if (currentMonth === 0) {
       setCurrentMonth(11);
       setCurrentYear(currentYear - 1);
@@ -64,6 +66,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
   };
 
   const handleNextMonth = () => {
+    sounds.playClick();
     if (currentMonth === 11) {
       setCurrentMonth(0);
       setCurrentYear(currentYear + 1);
@@ -149,7 +152,10 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
               return (
                 <button
                   key={`day-${day}`}
-                  onClick={() => setSelectedDay(day)}
+                  onClick={() => {
+                    sounds.playClick();
+                    setSelectedDay(day);
+                  }}
                   className={`h-10 sm:h-12 rounded-xl flex flex-col items-center justify-center relative transition-all cursor-pointer text-xs font-bold ${
                     isSelected
                       ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-300 dark:ring-indigo-700'

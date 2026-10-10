@@ -94,6 +94,7 @@ export interface UserProfile {
   phone: string;
   city: string;
   avatar: string;
+  role: 'guest' | 'user' | 'admin';
   savedEventIds: string[];
   bookings: Booking[];
   interests: EventCategory[];

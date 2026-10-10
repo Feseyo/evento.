@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { EventItem, EventCategory, UserProfile } from '../types';
 import { ScrollReveal } from './ScrollExperience';
+import { sounds } from '../utils/soundEffects';
 
 interface TrendingEventsProps {
   events: EventItem[];
@@ -127,7 +128,10 @@ export const TrendingEvents: React.FC<TrendingEventsProps> = ({
             {currentCity.toLowerCase() !== 'all kerala' && (
               <div className="flex items-center gap-1 liquid-glass-pill p-1 rounded-xl">
                 <button
-                  onClick={() => setScopeFilter('city')}
+                  onClick={() => {
+                    sounds.playClick();
+                    setScopeFilter('city');
+                  }}
                   className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                     scopeFilter === 'city'
                       ? 'bg-indigo-600 text-white shadow-xs'
@@ -137,7 +141,10 @@ export const TrendingEvents: React.FC<TrendingEventsProps> = ({
                   📍 In {currentCity} ({cityEventsCount})
                 </button>
                 <button
-                  onClick={() => setScopeFilter('all')}
+                  onClick={() => {
+                    sounds.playClick();
+                    setScopeFilter('all');
+                  }}
                   className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                     scopeFilter === 'all'
                       ? 'bg-indigo-600 text-white shadow-xs'
@@ -152,7 +159,10 @@ export const TrendingEvents: React.FC<TrendingEventsProps> = ({
             {/* Price Filter Pills */}
             <div className="flex items-center gap-1 liquid-glass-pill p-1 rounded-xl">
               <button
-                onClick={() => setPriceFilter('all')}
+                onClick={() => {
+                  sounds.playClick();
+                  setPriceFilter('all');
+                }}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                   priceFilter === 'all' 
                     ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs' 
@@ -162,7 +172,10 @@ export const TrendingEvents: React.FC<TrendingEventsProps> = ({
                 All
               </button>
               <button
-                onClick={() => setPriceFilter('free')}
+                onClick={() => {
+                  sounds.playClick();
+                  setPriceFilter('free');
+                }}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                   priceFilter === 'free' 
                     ? 'bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 shadow-2xs' 
@@ -172,7 +185,10 @@ export const TrendingEvents: React.FC<TrendingEventsProps> = ({
                 Free
               </button>
               <button
-                onClick={() => setPriceFilter('under400')}
+                onClick={() => {
+                  sounds.playClick();
+                  setPriceFilter('under400');
+                }}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                   priceFilter === 'under400' 
                     ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs' 
@@ -182,7 +198,10 @@ export const TrendingEvents: React.FC<TrendingEventsProps> = ({
                 ≤ ₹400
               </button>
               <button
-                onClick={() => setPriceFilter('above800')}
+                onClick={() => {
+                  sounds.playClick();
+                  setPriceFilter('above800');
+                }}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                   priceFilter === 'above800' 
                     ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs' 
@@ -196,6 +215,7 @@ export const TrendingEvents: React.FC<TrendingEventsProps> = ({
             {hasActiveFilters && (
               <button
                 onClick={() => {
+                  sounds.playClick();
                   setPriceFilter('all');
                   setTimeFilter('all');
                   onClearFilters();
@@ -291,17 +311,17 @@ export const TrendingEvents: React.FC<TrendingEventsProps> = ({
                         </span>
                       </div>
 
-                      {/* DELETE EVENT BUTTON (ONLY VISIBLE FOR EVENTS CREATED BY THIS USER) */}
-                      {isAuthenticated && user && (event.createdByUserId === user.id || event.organizer?.name?.includes('You') || (user.name && event.organizer?.name?.includes(user.name.split(' ')[0]))) && (
+                      {/* DELETE EVENT BUTTON (ONLY VISIBLE FOR EVENTS CREATED BY THIS USER OR ADMIN) */}
+                      {isAuthenticated && user && (user.role === 'admin' || (Boolean(event.createdByUserId) && event.createdByUserId === user.id)) && (
                         <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-600/90 text-white shadow-sm backdrop-blur-md">
-                            Your Event
+                            {user.role === 'admin' && event.createdByUserId !== user.id ? 'Admin' : 'Your Event'}
                           </span>
                           <button
                             onClick={(e) => onDeleteEvent(event.id, e)}
                             className="p-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white backdrop-blur-md transition-all shadow-sm cursor-pointer"
-                            title="Delete your event"
-                            aria-label="Delete your event"
+                            title={user.role === 'admin' ? "Admin Delete Event" : "Delete your event"}
+                            aria-label="Delete event"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

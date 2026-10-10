@@ -23,19 +23,79 @@ import { ScrollExperience } from './components/ScrollExperience';
 import { LiquidGlassBackground } from './components/LiquidGlassBackground';
 import { INITIAL_EVENTS } from './data/mockEvents';
 import { EventItem, EventCategory, TicketTier, Booking, UserProfile } from './types';
+import { sounds } from './utils/soundEffects';
+
+const GUEST_USER: UserProfile = {
+  id: 'guest-visitor',
+  name: 'Guest User',
+  email: 'guest@evento.in',
+  phone: '',
+  city: 'Kochi',
+  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+  role: 'guest',
+  savedEventIds: [],
+  bookings: [],
+  interests: ['music', 'football'],
+  emailNotifications: false,
+  nearbyAlerts: false,
+};
+
+const DEFAULT_LOGIN_USER: UserProfile = {
+  id: 'usr-sooraj-9495',
+  name: 'Sooraj S',
+  email: 'soorajs9495@gmail.com',
+  phone: '+91 94950 12345',
+  city: 'Kochi',
+  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+  role: 'user',
+  savedEventIds: ['koc-feat-1', 'koc-feat-2'],
+  bookings: [
+    {
+      id: 'EVT-KL-849201',
+      eventId: 'koc-feat-1',
+      eventTitle: 'Neon Nights: Kerala Music Festival',
+      eventImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
+      eventDate: '12 OCT · 20:00',
+      eventTime: '20:00 - 01:00',
+      eventVenue: 'Bolgatty Palace Grounds, Kochi',
+      eventCity: 'Kochi',
+      ticketTierName: 'General Admission Pass',
+      quantity: 2,
+      totalPaid: 1598,
+      bookingDate: '3 Oct 2026',
+      attendeeName: 'Sooraj S',
+      attendeeEmail: 'soorajs9495@gmail.com',
+      attendeePhone: '+91 94950 12345',
+      paymentMethod: 'Google Pay (UPI)',
+      qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=EVENTO-PASS-EVT-KL-849201',
+      status: 'confirmed',
+    }
+  ],
+  interests: ['music', 'football', 'company-collab'],
+  emailNotifications: true,
+  nearbyAlerts: true,
+};
 
 export default function App() {
-  // Authentication State
+  // Authentication State: Default FALSE so every visitor begins as a guest user
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     try {
       const stored = localStorage.getItem('evento_auth');
-      return stored !== null ? JSON.parse(stored) : true; // Default signed in as Sooraj S
+      return stored !== null ? JSON.parse(stored) : false; // Default guest user
     } catch {
-      return true;
+      return false;
     }
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authActivityPrompt, setAuthActivityPrompt] = useState<string | null>(null);
+  const [authInitialMode, setAuthInitialMode] = useState<'signin' | 'signup'>('signin');
+
+  const openAuthWithPrompt = (prompt: string, mode: 'signin' | 'signup' = 'signin') => {
+    setAuthActivityPrompt(prompt);
+    setAuthInitialMode(mode);
+    setIsAuthModalOpen(true);
+  };
 
   // Core Events State
   const [events, setEvents] = useState<EventItem[]>(() => {
@@ -58,56 +118,17 @@ export default function App() {
 
   // User Profile & Preferences State
   const [user, setUser] = useState<UserProfile>(() => {
-    const defaultBooking: Booking = {
-      id: 'EVT-KL-849201',
-      eventId: 'feat-1',
-      eventTitle: 'Neon Nights: Kerala Music Festival',
-      eventImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
-      eventDate: '12 OCT · 20:00',
-      eventTime: '20:00 - 01:00',
-      eventVenue: 'Bolgatty Palace Grounds, Kochi',
-      eventCity: 'Kochi',
-      ticketTierName: 'General Admission Pass',
-      quantity: 2,
-      totalPaid: 1598,
-      bookingDate: '3 Oct 2026',
-      attendeeName: 'Sooraj S',
-      attendeeEmail: 'soorajs9495@gmail.com',
-      attendeePhone: '+91 94950 12345',
-      paymentMethod: 'Google Pay (UPI)',
-      qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=EVENTO-PASS-EVT-KL-849201',
-      status: 'confirmed',
-    };
-
     try {
+      const storedAuth = localStorage.getItem('evento_auth');
+      const isAuth = storedAuth !== null ? JSON.parse(storedAuth) : false;
       const savedUser = localStorage.getItem('evento_user_v2');
-      return savedUser ? JSON.parse(savedUser) : {
-        id: 'usr-sooraj-9495',
-        name: 'Sooraj S',
-        email: 'soorajs9495@gmail.com',
-        phone: '+91 94950 12345',
-        city: 'Kochi',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-        savedEventIds: ['feat-1', 'feat-4', 'trend-1'],
-        bookings: [defaultBooking],
-        interests: ['music', 'football', 'company-collab'],
-        emailNotifications: true,
-        nearbyAlerts: true,
-      };
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        return isAuth ? parsed : { ...parsed, role: 'guest' };
+      }
+      return isAuth ? DEFAULT_LOGIN_USER : GUEST_USER;
     } catch {
-      return {
-        id: 'usr-sooraj-9495',
-        name: 'Sooraj S',
-        email: 'soorajs9495@gmail.com',
-        phone: '+91 94950 12345',
-        city: 'Kochi',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-        savedEventIds: ['feat-1', 'feat-4', 'trend-1'],
-        bookings: [defaultBooking],
-        interests: ['music', 'football', 'company-collab'],
-        emailNotifications: true,
-        nearbyAlerts: true,
-      };
+      return GUEST_USER;
     }
   });
 
@@ -171,6 +192,11 @@ export default function App() {
   // Toggle Save Event (Interested)
   const handleToggleSave = (eventId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      showToast('Please sign in or create an account to save events.');
+      openAuthWithPrompt('Sign in or create an account to save events to your profile.', 'signin');
+      return;
+    }
     const isAlreadySaved = user.savedEventIds.includes(eventId);
     const updatedSaved = isAlreadySaved
       ? user.savedEventIds.filter(id => id !== eventId)
@@ -183,6 +209,7 @@ export default function App() {
 
     const event = events.find(item => item.id === eventId);
     const title = event ? event.title : 'Event';
+    sounds.playLike(!isAlreadySaved);
     if (!isAlreadySaved) {
       showToast(`Saved "${title}" to your profile!`);
     } else {
@@ -192,12 +219,21 @@ export default function App() {
 
   // Event Detail Click
   const handleSelectEvent = (event: EventItem) => {
+    sounds.playModalOpen();
     setSelectedEvent(event);
     setIsDetailModalOpen(true);
   };
 
-  // Initiate Booking from Event Detail
+  // Initiate Booking from Event Detail (Enforces Authentication)
   const handleStartBooking = (event: EventItem, tier: TicketTier, quantity: number) => {
+    if (!isAuthenticated) {
+      setSelectedEvent(event);
+      setCheckoutTier(tier);
+      setCheckoutQuantity(quantity);
+      showToast('Please sign in or create an account to book tickets.');
+      openAuthWithPrompt(`Sign in or create an account to book tickets for "${event.title}".`, 'signin');
+      return;
+    }
     setSelectedEvent(event);
     setCheckoutTier(tier);
     setCheckoutQuantity(quantity);
@@ -207,6 +243,7 @@ export default function App() {
 
   // On Complete Checkout
   const handleBookingSuccess = (newBooking: Booking) => {
+    sounds.playSuccess();
     setUser(prev => ({
       ...prev,
       bookings: [newBooking, ...prev.bookings],
@@ -236,7 +273,7 @@ export default function App() {
     showToast('Removed from saved');
   };
 
-  // DELETE EVENT HANDLER (AUTHENTICATED ONLY - CREATOR ONLY)
+  // DELETE EVENT HANDLER (AUTHENTICATED ONLY - CREATOR ONLY OR ADMIN)
   const handleDeleteEvent = (eventId: string, e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
@@ -251,13 +288,14 @@ export default function App() {
     const eventToDelete = events.find(ev => ev.id === eventId);
     if (!eventToDelete) return;
 
-    // Strict ownership verification: only creator can delete this event
-    const isOwner = eventToDelete.createdByUserId === user.id ||
-      eventToDelete.organizer.name.includes('You') ||
-      (Boolean(user.name) && eventToDelete.organizer.name.includes(user.name.split(' ')[0]));
+    // Strict ownership verification:
+    // Admin can delete any event across the entire platform.
+    // Regular authenticated user can ONLY delete events created by the user itself!
+    const isAdmin = user.role === 'admin';
+    const isOwner = Boolean(eventToDelete.createdByUserId) && eventToDelete.createdByUserId === user.id;
 
-    if (!isOwner) {
-      showToast('You can only delete events that you created.');
+    if (!isAdmin && !isOwner) {
+      showToast('Authenticated users can only delete events that they created themselves.');
       return;
     }
 
@@ -289,14 +327,15 @@ export default function App() {
     }
 
     setEvents(prev => [newEvent, ...prev]);
+    sounds.playSuccess();
     showToast(`"${newEvent.title}" has been published!`);
   };
 
   // Open Host Modal (checks authentication first)
   const handleTriggerHostModal = () => {
     if (!isAuthenticated) {
-      showToast('Please sign in to host an event.');
-      setIsAuthModalOpen(true);
+      showToast('Please sign in or create an account to host an event.');
+      openAuthWithPrompt('Sign in or create an account to host and publish events.', 'signin');
       return;
     }
     setIsHostModalOpen(true);
@@ -304,21 +343,48 @@ export default function App() {
 
   // Open profile with specific tab
   const handleOpenProfile = (tab: 'tickets' | 'saved' | 'settings' | 'hosted' = 'tickets') => {
+    if (!isAuthenticated) {
+      showToast(`Please sign in or create an account to view your ${tab === 'saved' ? 'saved events' : 'tickets & profile'}.`);
+      openAuthWithPrompt(`Sign in or create an account to access your ${tab === 'saved' ? 'saved events' : 'tickets and profile'}.`, 'signin');
+      return;
+    }
     setProfileInitialTab(tab);
     setIsProfileOpen(true);
   };
 
-  // Sign out
+  // Sign out (Returns to Guest user mode)
   const handleSignOut = () => {
     setIsAuthenticated(false);
-    showToast('You have signed out. Sign in anytime to host or delete events.');
+    setUser(GUEST_USER);
+    setCheckoutTier(null);
+    try {
+      localStorage.setItem('evento_auth', JSON.stringify(false));
+      localStorage.setItem('evento_user_v2', JSON.stringify(GUEST_USER));
+    } catch (e) {
+      console.error(e);
+    }
+    showToast('Signed out. Viewing platform as Guest user.');
+  };
+
+  // Switch to Guest Mode
+  const handleSelectGuest = () => {
+    setIsAuthenticated(false);
+    setUser(GUEST_USER);
+    showToast('Browsing as Guest user.');
   };
 
   // Sign in success
   const handleLoginSuccess = (authUser: UserProfile) => {
+    sounds.playSuccess();
     setUser(authUser);
     setIsAuthenticated(true);
-    showToast(`Welcome back, ${authUser.name}!`);
+    setAuthActivityPrompt(null);
+    showToast(`Welcome ${authUser.name}! Signed in as ${authUser.role === 'admin' ? 'Super Admin' : 'User'}.`);
+
+    // If user was booking tickets before sign-in, seamlessly resume checkout
+    if (selectedEvent && checkoutTier) {
+      setIsCheckoutOpen(true);
+    }
   };
 
   // Scroll to Trending
@@ -327,6 +393,13 @@ export default function App() {
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  // Change city / district handler with tactile click sound
+  const handleSelectCity = (city: string) => {
+    sounds.playClick();
+    setCurrentCity(city);
+    showToast(`Location set to ${city}`);
   };
 
   // Filter events count for current location
@@ -368,7 +441,7 @@ export default function App() {
         ticketsCount={user.bookings.length}
         user={user}
         isAuthenticated={isAuthenticated}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onOpenAuthModal={(mode = 'signin') => openAuthWithPrompt('Sign in with your username/gmail and password, or create a new account.', mode)}
         onSignOut={handleSignOut}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -386,10 +459,7 @@ export default function App() {
         {/* Location Showcase Hero Banner (Displays according to current selected location) */}
         <CityHeroBanner
           currentCity={currentCity}
-          onSelectCity={(city) => {
-            setCurrentCity(city);
-            showToast(`Location set to ${city}`);
-          }}
+          onSelectCity={handleSelectCity}
           onOpenCityModal={() => setIsCityPickerOpen(true)}
           eventCount={eventsInCurrentCity.length}
           culturalCount={culturalInCurrentCity.length}
@@ -423,10 +493,7 @@ export default function App() {
           isAuthenticated={isAuthenticated}
           user={user}
           currentCity={currentCity}
-          onChangeCity={(city) => {
-            setCurrentCity(city);
-            showToast(`Location set to ${city}`);
-          }}
+          onChangeCity={handleSelectCity}
           onToggleSave={handleToggleSave}
           onSelectEvent={handleSelectEvent}
           onDeleteEvent={handleDeleteEvent}
@@ -440,7 +507,7 @@ export default function App() {
         <HostEventCallout
           isAuthenticated={isAuthenticated}
           onOpenHostModal={handleTriggerHostModal}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenAuthModal={(mode = 'signin') => openAuthWithPrompt('Sign in or create an account to host your own events.', mode)}
         />
 
       </main>
@@ -459,6 +526,7 @@ export default function App() {
         onToggleSave={handleToggleSave}
         onBookEvent={handleStartBooking}
         onDeleteEvent={handleDeleteEvent}
+        onPromptAuth={openAuthWithPrompt}
       />
 
       {/* MODAL 2: Ticket Booking & Payment Checkout */}
@@ -511,10 +579,7 @@ export default function App() {
         isOpen={isCityPickerOpen}
         onClose={() => setIsCityPickerOpen(false)}
         currentCity={currentCity}
-        onSelectCity={(city) => {
-          setCurrentCity(city);
-          showToast(`Browsing events in ${city}`);
-        }}
+        onSelectCity={handleSelectCity}
       />
 
       {/* MODAL 6: Calendar Date Picker */}
@@ -539,7 +604,10 @@ export default function App() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+        onSelectGuest={handleSelectGuest}
         defaultEmail={user.email}
+        activityPrompt={authActivityPrompt}
+        initialMode={authInitialMode}
       />
 
     </div>

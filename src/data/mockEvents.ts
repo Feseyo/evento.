@@ -102,6 +102,7 @@ export const INITIAL_EVENTS: EventItem[] = [
     tags: ['Acoustic', 'Rooftop', 'Kochi Sunset', 'Marine Drive', 'Networking'],
     attendeesCount: 280,
     coordinates: { lat: 9.9788, lng: 76.2758 },
+    createdByUserId: 'usr-sooraj-9495',
   },
   {
     id: 'koc-feat-3',

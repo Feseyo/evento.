@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MapPin, Bookmark, Star, ArrowRight, Trash2 } from 'lucide-react';
 import { EventItem, UserProfile } from '../types';
 import { ScrollReveal } from './ScrollExperience';
+import { sounds } from '../utils/soundEffects';
 
 interface FeaturedEventsProps {
   events: EventItem[];
@@ -63,7 +64,10 @@ export const FeaturedEvents: React.FC<FeaturedEventsProps> = ({
                 Featured in {isAllKerala ? 'Kerala' : currentCity}
               </h2>
               <button
-                onClick={onChangeCity}
+                onClick={() => {
+                  sounds.playClick();
+                  onChangeCity();
+                }}
                 className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors underline-offset-4 hover:underline cursor-pointer"
               >
                 Change district
@@ -133,13 +137,13 @@ export const FeaturedEvents: React.FC<FeaturedEventsProps> = ({
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      {/* DELETE BUTTON (ONLY VISIBLE FOR EVENTS CREATED BY THIS USER) */}
-                      {isAuthenticated && user && (event.createdByUserId === user.id || event.organizer?.name?.includes('You') || (user.name && event.organizer?.name?.includes(user.name.split(' ')[0]))) && (
+                      {/* DELETE BUTTON (ONLY VISIBLE FOR EVENTS CREATED BY THIS USER OR ADMIN) */}
+                      {isAuthenticated && user && (user.role === 'admin' || (Boolean(event.createdByUserId) && event.createdByUserId === user.id)) && (
                         <button
                           onClick={(e) => onDeleteEvent(event.id, e)}
                           className="p-2 rounded-full bg-rose-600/90 hover:bg-rose-700 text-white backdrop-blur-md transition-all shadow-md cursor-pointer"
-                          title="Delete your event"
-                          aria-label="Delete your event"
+                          title={user.role === 'admin' ? "Admin Delete Event" : "Delete your event"}
+                          aria-label="Delete event"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

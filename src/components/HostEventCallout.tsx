@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { PlusCircle, Sparkles, Laptop, Lock } from 'lucide-react';
+import { PlusCircle, Sparkles, Laptop, Lock, UserPlus } from 'lucide-react';
 import { ScrollReveal } from './ScrollExperience';
+import { sounds } from '../utils/soundEffects';
 
 interface HostEventCalloutProps {
   isAuthenticated: boolean;
   onOpenHostModal: () => void;
-  onOpenAuthModal: () => void;
+  onOpenAuthModal: (mode?: 'signin' | 'signup') => void;
 }
 
 export const HostEventCallout: React.FC<HostEventCalloutProps> = ({ 
@@ -43,13 +44,28 @@ export const HostEventCallout: React.FC<HostEventCalloutProps> = ({
                       <span>Create Event</span>
                     </button>
                   ) : (
-                    <button
-                      onClick={onOpenAuthModal}
-                      className="inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 group cursor-pointer"
-                    >
-                      <Lock className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
-                      <span>Sign In to Host Event</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <button
+                        onClick={() => {
+                          sounds.playClick();
+                          onOpenAuthModal('signin');
+                        }}
+                        className="inline-flex items-center gap-2 px-5 py-3 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs hover:shadow transition-all group cursor-pointer"
+                      >
+                        <Lock className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
+                        <span>Sign In to Host Event</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          sounds.playClick();
+                          onOpenAuthModal('signup');
+                        }}
+                        className="inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs hover:shadow transition-all group cursor-pointer"
+                      >
+                        <UserPlus className="w-4 h-4 text-indigo-200" />
+                        <span>Create Account</span>
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

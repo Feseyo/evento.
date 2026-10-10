@@ -9,6 +9,7 @@ import {
   Globe 
 } from 'lucide-react';
 import { CITIES } from '../data/mockEvents';
+import { sounds } from '../utils/soundEffects';
 
 interface LocationPickerModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   );
 
   const handleDetectLocation = () => {
+    sounds.playClick();
     setDetecting(true);
     setDetectedSuccess(null);
 
@@ -139,6 +141,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 <button
                   key={c.id}
                   onClick={() => {
+                    sounds.playClick();
                     onSelectCity(c.name);
                     onClose();
                   }}

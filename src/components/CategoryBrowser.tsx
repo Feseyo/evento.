@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { EventCategory } from '../types';
 import { ScrollReveal } from './ScrollExperience';
+import { sounds } from '../utils/soundEffects';
 
 interface CategoryBrowserProps {
   selectedCategory: EventCategory | 'all';
@@ -106,7 +107,10 @@ export const CategoryBrowser: React.FC<CategoryBrowserProps> = ({
 
             {selectedCategory !== 'all' && (
               <button
-                onClick={() => onSelectCategory('all')}
+                onClick={() => {
+                  sounds.playClick();
+                  onSelectCategory('all');
+                }}
                 className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -124,7 +128,10 @@ export const CategoryBrowser: React.FC<CategoryBrowserProps> = ({
             return (
               <ScrollReveal key={cat.id} delayMs={idx * 60} direction="up">
                 <button
-                  onClick={() => onSelectCategory(isSelected ? 'all' : cat.id)}
+                  onClick={() => {
+                    sounds.playClick();
+                    onSelectCategory(isSelected ? 'all' : cat.id);
+                  }}
                   className={`w-full flex flex-col items-center justify-center p-6 rounded-2xl transition-all duration-300 cursor-pointer group text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 overflow-hidden relative ${
                     isSelected 
                       ? `${cat.activeRing} shadow-md` 

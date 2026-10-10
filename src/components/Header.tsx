@@ -13,10 +13,13 @@ import {
   LogOut, 
   Settings,
   Sun,
-  Moon
+  Moon,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import { sounds } from '../utils/soundEffects';
 
 interface HeaderProps {
   currentCity: string;
@@ -28,7 +31,7 @@ interface HeaderProps {
   ticketsCount: number;
   user: UserProfile | null;
   isAuthenticated: boolean;
-  onOpenAuthModal: () => void;
+  onOpenAuthModal: (mode?: 'signin' | 'signup') => void;
   onSignOut: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
@@ -55,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme, isDark, toggleTheme, soundEnabled, toggleSound } = useTheme();
 
   return (
     <header className="sticky top-0 z-40 liquid-glass border-b transition-colors duration-200">
@@ -74,7 +77,10 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* LOCATION SELECTOR */}
             <button
-              onClick={onOpenCityPicker}
+              onClick={() => {
+                sounds.playClick();
+                onOpenCityPicker();
+              }}
               className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full liquid-glass-pill hover:scale-105 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white text-xs font-semibold transition-all group shadow-2xs cursor-pointer"
               title="Change your current city"
             >
@@ -87,7 +93,10 @@ export const Header: React.FC<HeaderProps> = ({
           {/* ZONE 2: PRIMARY NAVIGATION */}
           <nav className="hidden lg:flex items-center gap-8">
             <button
-              onClick={onOpenCityPicker}
+              onClick={() => {
+                sounds.playClick();
+                onOpenCityPicker();
+              }}
               className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
             >
               Cities
@@ -141,11 +150,11 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* LIGHT / DARK MODE TOGGLE (PROMINENT, INSTANT SWITCH) */}
+            {/* LIGHT / DARK MODE TOGGLE (PROMINENT, INSTANT SWITCH WITH SOUND) */}
             <button
               onClick={toggleTheme}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer shadow-2xs group focus:outline-none focus:ring-2 focus:ring-indigo-500/50 bg-slate-100 hover:bg-slate-200 border-slate-200/90 text-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-800 dark:text-slate-200"
-              title={isDark ? "Switch to Light Mode (white background)" : "Switch to Dark Mode (dark background)"}
+              title={isDark ? "Switch to Light Mode (sound enabled)" : "Switch to Dark Mode (sound enabled)"}
               aria-label="Toggle dark and light mode"
             >
               {isDark ? (
@@ -161,24 +170,31 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
+            {/* SOUND EFFECT TOGGLE */}
+            <button
+              onClick={toggleSound}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer shadow-2xs group focus:outline-none bg-slate-100 hover:bg-slate-200 border-slate-200/90 text-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-800 dark:text-slate-300"
+              title={soundEnabled ? "Sound effects active (Click to mute)" : "Sound effects muted (Click to unmute)"}
+              aria-label="Toggle sound effects"
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              ) : (
+                <VolumeX className="w-4 h-4 text-slate-400" />
+              )}
+            </button>
+
             {/* MY PROFILE & AUTH CONTROLS (FOR ALL DEVICE SIZES) */}
             {!isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onOpenProfile('tickets')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 shadow-2xs transition-all cursor-pointer"
-                  title="Open My Profile (View Tickets, Host Event)"
-                >
-                  <User className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                  <span className="hidden sm:inline">My Profile</span>
-                </button>
-                <button
-                  onClick={onOpenAuthModal}
-                  className="flex items-center gap-2 px-4 sm:px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-xl shadow-xs hover:shadow transition-all group cursor-pointer"
-                >
-                  <span>Sign In</span>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  sounds.playClick();
+                  onOpenAuthModal('signin');
+                }}
+                className="flex items-center gap-2 px-4 sm:px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-xl shadow-xs hover:shadow transition-all group cursor-pointer"
+              >
+                <span>Sign In</span>
+              </button>
             ) : (
               /* AUTHENTICATED USER: MY PROFILE PILL & DROPDOWN */
               <div className="relative">
@@ -195,8 +211,17 @@ export const Header: React.FC<HeaderProps> = ({
                     />
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold max-w-[85px] sm:max-w-[110px] truncate">
-                        My Profile
+                        {user?.name || 'My Profile'}
                       </span>
+                      {user?.role === 'admin' ? (
+                        <span className="px-1.5 py-0.2 text-[9px] font-extrabold uppercase bg-rose-600 text-white rounded-md tracking-wider">
+                          Admin
+                        </span>
+                      ) : (
+                        <span className="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded-md">
+                          User
+                        </span>
+                      )}
                       {ticketsCount > 0 && (
                         <span className="hidden sm:inline-block px-1.5 py-0.2 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 rounded-full tabular-nums">
                           {ticketsCount}
@@ -215,13 +240,19 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {/* Dropdown Menu */}
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-60 liquid-glass rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 mt-2 w-64 liquid-glass rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user?.name}</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
-                      <span className="inline-block mt-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60">
-                        Authenticated User
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user?.name}</p>
+                        <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                          user?.role === 'admin' 
+                            ? 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300' 
+                            : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'
+                        }`}>
+                          {user?.role === 'admin' ? 'Super Admin' : 'Login User'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
                     </div>
 
                     <button
@@ -377,76 +408,77 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="lg:hidden border-t border-slate-200/80 dark:border-slate-800 liquid-glass px-4 pt-3 pb-6 shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="space-y-2">
             
-            {/* 1. MOBILE USER PROFILE CARD (FEATURING VIEW TICKETS & HOST EVENT) */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  {isAuthenticated ? (
+            {/* 1. MOBILE USER PROFILE CARD (ONLY FOR AUTHENTICATED USERS) */}
+            {isAuthenticated && (
+              <div className="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <img
                       src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80'}
                       alt={user?.name || 'User'}
                       className="w-9 h-9 rounded-full object-cover border border-indigo-400 shrink-0"
                     />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 shrink-0">
-                      <User className="w-4 h-4" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          {user?.name}
+                        </p>
+                        <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded ${
+                          user?.role === 'admin'
+                            ? 'bg-rose-600 text-white'
+                            : 'bg-indigo-600 text-white'
+                        }`}>
+                          {user?.role === 'admin' ? 'Admin' : 'User'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {user?.email}
+                      </p>
                     </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                      {isAuthenticated ? user?.name : 'Guest User'}
-                    </p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                      {isAuthenticated ? user?.email : 'My Profile & Bookings'}
-                    </p>
                   </div>
+
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenProfile('tickets');
+                    }}
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-2xs transition-colors shrink-0 cursor-pointer"
+                  >
+                    My Profile
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenProfile('tickets');
-                  }}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-2xs transition-colors shrink-0 cursor-pointer"
-                >
-                  My Profile
-                </button>
-              </div>
+                {/* Quick Actions inside My Profile on Mobile: View Tickets & Host Event */}
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/80">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenProfile('tickets');
+                    }}
+                    className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-white dark:bg-slate-800/90 text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+                  >
+                    <Ticket className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span className="truncate">View Tickets</span>
+                    {ticketsCount > 0 && (
+                      <span className="px-1.5 py-0.2 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 rounded-full tabular-nums">
+                        {ticketsCount}
+                      </span>
+                    )}
+                  </button>
 
-              {/* Quick Actions inside My Profile on Mobile: View Tickets & Host Event */}
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/80">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenProfile('tickets');
-                  }}
-                  className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-white dark:bg-slate-800/90 text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors cursor-pointer"
-                >
-                  <Ticket className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span className="truncate">View Tickets</span>
-                  {ticketsCount > 0 && (
-                    <span className="px-1.5 py-0.2 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 rounded-full tabular-nums">
-                      {ticketsCount}
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (!isAuthenticated) {
-                      onOpenAuthModal();
-                    } else {
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
                       onOpenHostModal();
-                    }
-                  }}
-                  className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-white dark:bg-slate-800/90 text-xs font-semibold text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 transition-colors cursor-pointer"
-                >
-                  <PlusCircle className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                  <span className="truncate">Host Event</span>
-                </button>
+                    }}
+                    className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-white dark:bg-slate-800/90 text-xs font-semibold text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 transition-colors cursor-pointer"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                    <span className="truncate">Host Event</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Mobile Theme Switcher */}
             <button
@@ -462,8 +494,23 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </button>
 
+            {/* Mobile Sound Effects Switcher */}
+            <button
+              onClick={toggleSound}
+              className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg"
+            >
+              <span className="flex items-center gap-2">
+                {soundEnabled ? <Volume2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+                <span>Sound Effects</span>
+              </span>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${soundEnabled ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                {soundEnabled ? 'Enabled' : 'Muted'}
+              </span>
+            </button>
+
             <button
               onClick={() => {
+                sounds.playClick();
                 onOpenCityPicker();
                 setMobileMenuOpen(false);
               }}
@@ -520,10 +567,11 @@ export const Header: React.FC<HeaderProps> = ({
             {!isAuthenticated ? (
               <button
                 onClick={() => {
-                  onOpenAuthModal();
+                  sounds.playClick();
+                  onOpenAuthModal('signin');
                   setMobileMenuOpen(false);
                 }}
-                className="w-full mt-2 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm text-center"
+                className="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-xs text-center transition-colors cursor-pointer"
               >
                 Sign In
               </button>

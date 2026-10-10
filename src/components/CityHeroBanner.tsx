@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { CITIES } from '../data/mockEvents';
 import { CityInfo } from '../types';
+import { sounds } from '../utils/soundEffects';
 
 interface CityHeroBannerProps {
   currentCity: string;
@@ -151,7 +152,10 @@ export const CityHeroBanner: React.FC<CityHeroBannerProps> = ({
             {/* Action Bar */}
             <div className="pt-2 flex flex-wrap items-center gap-2 sm:gap-3">
               <button
-                onClick={onOpenCityModal}
+                onClick={() => {
+                  sounds.playClick();
+                  onOpenCityModal();
+                }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <MapPin className="w-3.5 h-3.5" />
@@ -187,7 +191,10 @@ export const CityHeroBanner: React.FC<CityHeroBannerProps> = ({
             return (
               <button
                 key={city.id}
-                onClick={() => onSelectCity(city.name)}
+                onClick={() => {
+                  sounds.playClick();
+                  onSelectCity(city.name);
+                }}
                 className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-400/30 scale-[1.03] ring-1 ring-amber-300'

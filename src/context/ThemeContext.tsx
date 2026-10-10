@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { sounds } from '../utils/soundEffects';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -7,6 +8,8 @@ interface ThemeContextType {
   isDark: boolean;
   toggleTheme: () => void;
   setTheme: (mode: ThemeMode) => void;
+  soundEnabled: boolean;
+  toggleSound: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -14,6 +17,8 @@ const ThemeContext = createContext<ThemeContextType>({
   isDark: false,
   toggleTheme: () => {},
   setTheme: () => {},
+  soundEnabled: true,
+  toggleSound: () => {},
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -28,6 +33,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     return 'light'; // Default to light mode (with crisp white background)
   });
+
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => sounds.isEnabled());
 
   const isDark = theme === 'dark';
 
@@ -59,15 +66,25 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [theme, isDark]);
 
   const toggleTheme = () => {
-    setThemeState(prev => (prev === 'dark' ? 'light' : 'dark'));
+    setThemeState(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      sounds.playThemeToggle(next === 'dark');
+      return next;
+    });
   };
 
   const setTheme = (mode: ThemeMode) => {
+    sounds.playThemeToggle(mode === 'dark');
     setThemeState(mode);
   };
 
+  const toggleSound = () => {
+    const next = sounds.toggleSound();
+    setSoundEnabled(next);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, isDark, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, isDark, toggleTheme, setTheme, soundEnabled, toggleSound }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -108,7 +108,12 @@ export const HostEventModal: React.FC<HostEventModalProps> = ({
       reviews: [],
       tags: [category, city, 'Community'],
       attendeesCount: 1,
-      coordinates: { lat: 51.5074, lng: -0.1278 },
+      coordinates: city === 'Trivandrum' ? { lat: 8.5241, lng: 76.9366 }
+        : city === 'Calicut' ? { lat: 11.2588, lng: 75.7804 }
+        : city === 'Thrissur' ? { lat: 10.5276, lng: 76.2144 }
+        : city === 'Bangalore' ? { lat: 12.9716, lng: 77.5946 }
+        : city === 'Goa' ? { lat: 15.2993, lng: 74.1240 }
+        : { lat: 9.9312, lng: 76.2673 },
       createdByUserId: user?.id || 'usr-sooraj-9495',
     };
 
